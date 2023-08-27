@@ -6,6 +6,10 @@ Description: >
   - infrastructure bucket
   - CodeStarConnection
 
+# After creating the stack, the CodeStar Connection is in PENDING status by default.
+# The OAuth handshake with the GitHub must be completed.
+# See https://docs.aws.amazon.com/dtconsole/latest/userguide/connections-update.html for instructions.
+
 Resources:
   CodeStarConnection:
     Type: AWS::CodeStarConnections::Connection
@@ -18,16 +22,114 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      AccessControl: "LogDeliveryWrite"
-      OwnershipControls:
-        Rules:
-          - ObjectOwnership:  ObjectWriter
       VersioningConfiguration:
         Status: Enabled
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
+
+  InfrastructureBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref InfrastructureBucket
+      PolicyDocument:
+        Statement:
+          - Effect: "Deny"
+            Action: "s3:*"
+            Principal: "*"
+            Resource:
+              - !Sub  "${InfrastructureBucket.Arn}/*"
+              - !GetAtt InfrastructureBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Action:
+              - s3:*
+            Effect: Allow
+            Resource:
+              - !Sub arn:${AWS::Partition}:s3:::${InfrastructureBucket}
+              - !Sub arn:${AWS::Partition}:s3:::${InfrastructureBucket}/*
+            Principal:
+              AWS:
+                - arn:aws:iam::${AWS::AccountId}:root
+
+  CloudFormationExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: cloudformation.amazonaws.com
+      Policies:
+        - PolicyName: GrantCloudFormationFullAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Tags:
+        - Key: Role
+          Value: aws-sam-pipeline-codebuild-service-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+      Policies:
+        - PolicyName: CodeBuildLogs
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*"
+        - PolicyName: CodeBuildArtifactsBucket
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:GetObject"
+                  - "s3:GetObjectVersion"
+                  - "s3:PutObject"
+                Resource:
+                  -
+                    !Sub
+                      - "${InfrastructureBucketArn}/*"
+                      - InfrastructureBucketArn: !ImportValue InfrastructureBucketArn
+        - PolicyName: AssumeStagePipExecutionRoles
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - sts:AssumeRole
+                Effect: Allow
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    aws:ResourceTag/Role: pipeline-execution-role
+        - PolicyName: CodeBuildParameterStore
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ssm:GetParameters"
+                Resource:
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ac/*"
 
 Outputs:
   CodeStarConnectionArn:
@@ -35,13 +137,27 @@ Outputs:
     Value: !Ref CodeStarConnection
     Export:
       Name: CodeStarConnectionArn
+
   InfrastructureBucketName:
     Description: The Arn of AWS CodeStar Connection used to connect to external code repositories.
     Value: !Ref InfrastructureBucket
     Export:
       Name: InfrastructureBucketName
+
   InfrastructureBucketArn:
     Description: The Arn of AWS CodeStar Connection used to connect to external code repositories.
     Value: !GetAtt InfrastructureBucket.Arn
     Export:
       Name: InfrastructureBucketArn
+
+  CloudFormationExecutionRoleArn:
+    Description: The Arn of AWS CodeStar Connection used to connect to external code repositories.
+    Value: !GetAtt CloudFormationExecutionRole.Arn
+    Export:
+      Name: CloudFormationExecutionRoleArn
+
+  CodeBuildServiceRoleArn:
+    Description: The Arn of AWS CodeStar Connection used to connect to external code repositories.
+    Value: !GetAtt CodeBuildServiceRole.Arn
+    Export:
+      Name: CodeBuildServiceRoleArn
