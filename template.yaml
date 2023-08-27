@@ -47,8 +47,7 @@ Resources:
               - !Sub arn:${AWS::Partition}:s3:::${InfrastructureBucket}
               - !Sub arn:${AWS::Partition}:s3:::${InfrastructureBucket}/*
             Principal:
-              AWS:
-                - arn:aws:iam::${AWS::AccountId}:root
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
 
   CloudFormationExecutionRole:
     Type: AWS::IAM::Role
