@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "sam deploy --stack-name ac-bootstrap"
+    "start": "sam deploy --stack-name ac-bootstrap --capabilities=CAPABILITY_IAM"
   },
   "keywords": [],
   "author": "",
