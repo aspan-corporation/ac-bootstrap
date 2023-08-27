@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion : '2010-09-09'
+Description: >
+  This template deploys set of basic resources shared between components.
+
+  The following basic resources are predefined in this template:
+  - infrastructure bucket
+  - CodeStarConnection
+
+Resources:
+  CodeStarConnection:
+    Type: AWS::CodeStarConnections::Connection
+    Properties:
+      ConnectionName: GitRepositoryConnection
+      ProviderType: GitHub
+
+  InfrastructureBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      AccessControl: "LogDeliveryWrite"
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership:  ObjectWriter
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+Outputs:
+  CodeStarConnectionArn:
+    Description: The Arn of AWS CodeStar Connection used to connect to Aspan GitHub code repositories.
+    Value: !Ref CodeStarConnection
+    Export:
+      Name: CodeStarConnectionArn
+  InfrastructureBucketName:
+    Description: The Arn of AWS CodeStar Connection used to connect to external code repositories.
+    Value: !Ref InfrastructureBucket
+    Export:
+      Name: InfrastructureBucketName
+  InfrastructureBucketArn:
+    Description: The Arn of AWS CodeStar Connection used to connect to external code repositories.
+    Value: !GetAtt InfrastructureBucket.Arn
+    Export:
+      Name: InfrastructureBucketArn
