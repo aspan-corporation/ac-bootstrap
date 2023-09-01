@@ -19,11 +19,17 @@ Resources:
 
   InfrastructureBucket:
     Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
-      VersioningConfiguration:
-        Status: Enabled
+      BucketName: ac-infrastructure-bucket
+      LifecycleConfiguration:
+        Rules:
+          -
+            ExpirationInDays: 1
+            Status: Enabled
+            Transitions:
+              -
+                StorageClass: INTELLIGENT_TIERING
+                TransitionInDays: 0
 
   InfrastructureBucketPolicy:
     Type: AWS::S3::BucketPolicy
