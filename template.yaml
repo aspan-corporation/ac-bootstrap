@@ -114,7 +114,7 @@ Resources:
                   -
                     !Sub
                       - "${InfrastructureBucketArn}/*"
-                      - InfrastructureBucketArn: !ImportValue InfrastructureBucketArn
+                      - InfrastructureBucketArn: !GetAtt InfrastructureBucket.Arn
         - PolicyName: AssumeStagePipExecutionRoles
           PolicyDocument:
             Version: "2012-10-17"
