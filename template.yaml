@@ -187,6 +187,20 @@ Resources:
     Properties: 
       TopicName: ac-infrastructure-topic
 
+  InfrastructureTopicPolicy:
+    Type: AWS::SNS::TopicInlinePolicy
+    Properties: 
+      TopicArn: !Ref InfrastructureTopic
+      PolicyDocument:
+        Version: 2008-10-17
+        Statement:
+          - Sid: CodeNotification_publish
+            Effect: Allow
+            Principal: 
+              Service: codestar-notifications.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref InfrastructureTopic
+
 Outputs:
   CodeStarConnectionArn:
     Description: The Arn of AWS CodeStar Connection used to connect to Aspan GitHub code repositories.
