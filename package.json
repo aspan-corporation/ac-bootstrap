@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "sam deploy --stack-name ac-bootstrap --capabilities=CAPABILITY_IAM",
-    "delete": "sam delete --stack-name ac-bootstrap --no-prompts"
+    "delete": "aws s3 rm s3://ac-infrastructure-bucket --recursive && aws s3 rb s3://ac-infrastructure-bucket && sam delete --stack-name ac-bootstrap --no-prompts"
   },
   "keywords": [],
   "author": "",
