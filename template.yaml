@@ -227,4 +227,5 @@ Outputs:
   PipelineExecutionRoleArn:
     Description: ARN of the IAM Role(PipelineExecutionRole)
     Value: !GetAtt PipelineExecutionRole.Arn
-
+    Export:
+      Name: PipelineExecutionRoleArn
