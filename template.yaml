@@ -180,7 +180,7 @@ Resources:
                 Action:
                   - ssm:GetParameters
                 Resource:
-                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ac/*"
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/aspan-corporation/*"
 
   InfrastructureTopic:
     Type: AWS::SNS::Topic
