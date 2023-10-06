@@ -20,7 +20,7 @@ Resources:
   InfrastructureBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: ac-infrastructure-bucket
+      BucketName: !Sub ac-infrastructure-bucket-${AWS::Region}
       LifecycleConfiguration:
         Rules:
           -
